@@ -47,7 +47,7 @@ function limpiarReporte(mensaje) {
 
     const tbody = document.getElementById('reporte-body');
     const tfoot = document.getElementById('reporte-totales');
-    if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:3rem; color:var(--text-muted); font-style:italic;"><i class="fas fa-calendar-alt" style="display:block; font-size:2rem; margin-bottom:10px; opacity:0.3;"></i> ${mensaje}</td></tr>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:3rem; color:var(--text-muted); font-style:italic;"><i class="fas fa-calendar-alt" style="display:block; font-size:2rem; margin-bottom:10px; opacity:0.3;"></i> ${mensaje}</td></tr>`;
     if (tfoot) tfoot.innerHTML = '';
     
     // Destruir gráficas si existen
@@ -120,13 +120,13 @@ function renderTablaReporte() {
     if (!tbody) return;
 
     if (apiFetchError) {
-        ui_mostrarError('reporte-body', obtenerReporte, "No se pudo establecer conexión con el servidor para consolidar los datos financieros.", 9);
+        ui_mostrarError('reporte-body', obtenerReporte, "No se pudo establecer conexión con el servidor para consolidar los datos financieros.", 10);
         if (tfoot) tfoot.innerHTML = '';
         return;
     }
 
     if (filteredReporte.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem">No se encontraron registros.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:2rem">No se encontraron registros.</td></tr>';
         if (tfoot) tfoot.innerHTML = '';
         return;
     }
@@ -136,6 +136,7 @@ function renderTablaReporte() {
 
     tbody.innerHTML = filteredReporte.map(r => {
         const margenClass = r.margen >= 0 ? 'reporte-margen-pos' : 'reporte-margen-neg';
+        const mtgClass = r.margen_total_general >= 0 ? 'reporte-margen-pos' : 'reporte-margen-neg';
         return `<tr>
             <td><strong>${r.cod_flete}</strong></td>
             <td>${r.cliente}</td>
@@ -145,6 +146,7 @@ function renderTablaReporte() {
             <td><strong>${fmt(r.costo_total)}</strong></td>
             <td style="font-weight:800">${fmt(r.venta)}</td>
             <td><span class="${margenClass}">${fmtPct(r.margen)}</span></td>
+            <td><span class="${mtgClass}">${fmtPct(r.margen_total_general)}</span></td>
             <td>
                 <button class="btn-action primary" onclick="verDetalleReporte('${r.cod_flete}')" title="Ver Detalles">
                     <i class="fas fa-eye"></i> Detalles
@@ -159,12 +161,15 @@ function renderTablaReporte() {
         const totalCosto  = sum('costo_total');
         const totalVenta  = sum('venta');
         const totalMargen = filteredReporte.length > 0 ? (sum('margen') / filteredReporte.length) : 0; 
+        const totalMTG    = filteredReporte.length > 0 ? (sum('margen_total_general') / filteredReporte.length) : 0;
         const mc = totalMargen >= 0 ? 'reporte-margen-pos' : 'reporte-margen-neg';
+        const mtgc = totalMTG >= 0 ? 'reporte-margen-pos' : 'reporte-margen-neg';
         tfoot.innerHTML = `<tr style="font-weight:800; border-top: 2px solid #eee; background: #fafafa;">
             <td colspan="5">TOTALES FILTRADOS</td>
             <td>${fmt(totalCosto)}</td>
             <td>${fmt(totalVenta)}</td>
             <td><span class="${mc}">${fmtPct(totalMargen)}</span></td>
+            <td><span class="${mtgc}">${fmtPct(totalMTG)}</span></td>
             <td></td>
         </tr>`;
     }
@@ -191,6 +196,7 @@ function verDetalleReporte(codFlete) {
             <div class="detail-item"><label>Costo Total</label><strong>${fmt(r.costo_total)}</strong></div>
             <div class="detail-item"><label>Venta Total</label><strong>${fmt(r.venta)}</strong></div>
             <div class="detail-item"><label>Margen Operativo</label><strong style="color:${r.margen >= 0 ? '#10b981' : '#ff4d4d'}">${fmtPct(r.margen)}</strong></div>
+            <div class="detail-item"><label>Margen Total Gral</label><strong style="color:${r.margen_total_general >= 0 ? '#10b981' : '#ff4d4d'}">${fmtPct(r.margen_total_general)}</strong></div>
         </div>
     `;
 
