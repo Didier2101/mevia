@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Optimizador de Rutas IA | Coltanques</title>
+    <title>Optimizador de Rutas IA | MEVIA</title>
     <link rel="stylesheet" href="css/global.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -466,7 +466,7 @@
                     <i class="fas fa-arrow-left"></i>
                 </button>
                 <div class="opt-title">
-                    <small>Sistema Coltanques</small>
+                    <span class="logo-text">MEVIA</span>
                     <h1>Optimizador de Rutas IA</h1>
                 </div>
             </div>
@@ -523,14 +523,12 @@
 
         const Nota = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
 
-        // ── Leer parámetro flete de la URL ──────────────────────────────────────────
         const params = new URLSearchParams(window.location.search);
         const fleteId = params.get('flete');
 
         let recsActuales = [];
         let detailVisible = true;
 
-        // ── Alternar Detail / Mapa ──────────────────────────────────────────────────
         function mostrarDetalle() {
             document.getElementById('opt-detail-panel').style.display = 'block';
             document.getElementById('opt-map-panel').style.display = 'none';
@@ -544,7 +542,6 @@
             setTimeout(() => mapa && mapa.invalidateSize(), 120);
         }
 
-        // ── Renderizar el detalle de una recomendación ──────────────────────────────
         function renderDetalle(r) {
             const placeholder = document.querySelector('.opt-detail-placeholder');
             const content = document.getElementById('opt-detail-content');
@@ -557,7 +554,6 @@
                 <div class="cost-row"><span>Placa</span><span><strong>${r.placa}</strong></span></div>
                 <div class="cost-row"><span>Marca</span><span>${r.marca}</span></div>
                 <div class="cost-row"><span>Conductor</span><span>${r.conductor}</span></div>
-                <div class="cost-row"><span>Licencia</span><span>${r.licencia}</span></div>
                 <div class="cost-row"><span>Puntuación</span><span><strong>${r.puntos_conductor} / 18 ⭐</strong></span></div>
             </div>
         </div>
@@ -568,41 +564,47 @@
                 <div class="cost-row"><span>Distancia en Tránsito</span><span>${r.distancia_viaje} KM</span></div>
                 <div class="cost-row"><span>Distancia Retorno</span><span>${r.distancia_retorno || 0} KM</span></div>
                 <div class="cost-row"><span>Parqueo Destino</span><span>${r.parqueo_retorno || 'N/A'}</span></div>
-                <div class="cost-row"><span>Tiempo Total Operativo</span><span>${r.tiempo_total_min} MIN</span></div>
+                <div class="cost-row"><span>Tiempo Total Operativo</span><span>${(r.tiempo_total_min / 60).toFixed(1)} hrs</span></div>
             </div>
         </div>
         <div class="detail-section">
             <h3><i class="fas fa-dollar-sign"></i> Estructura de Costos</h3>
             <div class="cost-breakdown-card">
-                <div class="cost-row"><span>Viáticos Estimados</span><span>$${(r.viaticos_estimados || 0).toLocaleString()}</span></div>
-                <div class="cost-row"><span>Cargue/Descargue</span><span>$${((r.valor_cargue || 0) + (r.valor_descargue || 0)).toLocaleString()}</span></div>
-                <div class="cost-row"><span>Escolta/Otros</span><span>$${(r.valor_escolta || 0).toLocaleString()}</span></div>
-                <div class="cost-row"><span>Combustible</span><span>$${r.costo_combustible.toLocaleString()}</span></div>
-                <div class="cost-row"><span>Peajes</span><span>$${(r.costo_peajes + (r.costo_peajes_vacio || 0)).toLocaleString()}</span></div>
-                <div class="cost-row total"><span>Inversión Total</span><span>$${r.costo_total.toLocaleString()}</span></div>
+                <div class="cost-row"><span>Viáticos Estimados</span><span>$${Math.round(r.viaticos_estimados || 0).toLocaleString()}</span></div>
+                <div class="cost-row"><span>Cargue/Descargue</span><span>$${Math.round((r.valor_cargue || 0) + (r.valor_descargue || 0)).toLocaleString()}</span></div>
+                <div class="cost-row"><span>Escolta/Otros</span><span>$${Math.round(r.valor_escolta || 0).toLocaleString()}</span></div>
+                <div class="cost-row"><span>Valor Póliza</span><span>$${Math.round(r.valor_poliza || 0).toLocaleString()}</span></div>
+                <div class="cost-row"><span>Combustible</span><span>$${Math.round(r.costo_combustible).toLocaleString()}</span></div>
+                <div class="cost-row"><span>Peajes</span><span>$${Math.round(r.costo_peajes + (r.costo_peajes_vacio || 0)).toLocaleString()}</span></div>
+                <div class="cost-row total"><span>Inversión Total</span><span>$${Math.round(r.costo_total).toLocaleString()}</span></div>
             </div>
         </div>
         ${r.peajes && r.peajes.length ? `
         <div class="detail-section">
-            <h3><i class="fas fa-id-card"></i> Peajes en Ruta</h3>
+            <h3><i class="fas fa-parking"></i> Peajes en Ruta</h3>
             ${r.peajes.map(p => `
                 <div class="toll-list-item">
                     <span>${p.nombre}</span>
-                    <span>$${p.costo.toLocaleString()}</span>
+                    <span>$${Math.round(p.costo).toLocaleString()}</span>
                 </div>`).join('')}
         </div>` : ''}`;
 
             mostrarDetalle();
         }
 
-        // ── Renderizar lista de recomendaciones ─────────────────────────────────────
         function renderRecomendaciones(flete, recs) {
             const list = document.getElementById('opt-rec-list');
             const counter = document.getElementById('opt-rec-count');
             counter.textContent = `${recs.length} opción${recs.length !== 1 ? 'es' : ''}`;
 
-            const coordO = flete.origen.split(',').map(Number);
-            const coordD = flete.destino.split(',').map(Number);
+            // Robustez para coordenadas: si el servidor no envía "lat,lon", usamos fallback
+            const parseCoords = (str) => {
+                if (!str || typeof str !== 'string' || !str.includes(',')) return [4.5709, -74.2973]; // Centro Col
+                return str.split(',').map(Number);
+            };
+
+            const coordO = parseCoords(flete.origen);
+            const coordD = parseCoords(flete.destino);
 
             list.innerHTML = '';
 
@@ -615,26 +617,22 @@
             <div class="opt-rec-badge">#${i + 1}</div>
             <div class="opt-rec-header">
                 <h4>${r.placa} <small>(${r.marca})</small></h4>
-                <strong>$${r.costo_total.toLocaleString()}</strong>
+                <strong>$${Math.round(r.costo_total).toLocaleString()}</strong>
             </div>
             <div class="opt-rec-meta">
                 <span><i class="fas fa-user"></i>${r.conductor}</span>
-                <span><i class="fas fa-id-card"></i>${r.licencia}</span>
             </div>
             <div class="opt-rec-stats">
                 <span><i class="fas fa-star" style="color:#f59e0b"></i> ${r.puntos_conductor}/18 pts</span>
-                <span><i class="fas fa-truck-moving" style="color:#666"></i> ${r.distancia_vacio} km vacío</span>
+                <span><i class="fas fa-truck-moving" style="color:#666"></i> ${r.distancia_vacio} km</span>
                 <span><i class="fas fa-route" style="color:#dc2626"></i> ${r.distancia_viaje} km</span>
             </div>
             <div class="opt-rec-actions">
-                <button class="opt-btn-detail"><i class="fas fa-list-ul"></i> Ver Detalle</button>
-                <button class="opt-btn-ruta"><i class="fas fa-map-marked-alt"></i> Ver Ruta</button>
-                <button class="opt-btn-assign">
-                    <i class="fas fa-check-circle"></i> Asignar Unidad
-                </button>
+                <button class="opt-btn-detail"><i class="fas fa-list-ul"></i> Detalle</button>
+                <button class="opt-btn-ruta"><i class="fas fa-map-marked-alt"></i> Mapa</button>
+                <button class="opt-btn-assign">Asignar</button>
             </div>`;
 
-                // Selección visual
                 card.querySelector('.opt-btn-detail').onclick = () => {
                     document.querySelectorAll('.opt-rec-card').forEach(c => c.classList.remove('selected'));
                     card.classList.add('selected');
@@ -655,16 +653,16 @@
                 list.appendChild(card);
             });
 
-            // Auto-seleccionar y mostrar detalle de la #1
-            list.firstChild.classList.add('selected');
-            renderDetalle(recs[0]);
+            if (list.firstChild) {
+                list.firstChild.classList.add('selected');
+                renderDetalle(recs[0]);
+            }
         }
 
-        // ── Asignación Real via API ──────────────────────────────────────────────────
         async function asignar(idFlete, idVehiculo, placa, conductor) {
             const confirm = await Swal.fire({
-                title: '¿Confirmar Asignación?',
-                html: `Asignando <strong>${placa}</strong> con conductor <strong>${conductor}</strong>`,
+                title: '¿Asignar Vehículo?',
+                html: `Vas a asignar la placa <strong>${placa}</strong>.<br>Conductor: <strong>${conductor}</strong>`,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#E30613',
@@ -676,86 +674,48 @@
             if (!confirm.isConfirmed) return;
 
             try {
-                // Notificar al usuario que se está procesando
-                Swal.fire({
-                    title: 'Procesando...',
-                    text: 'Confirmando asignación en el servidor',
-                    allowOutsideClick: false,
-                    didOpen: () => { Swal.showLoading(); }
-                });
-
-                const payload = {
-                    cod_flete: idFlete,
-                    cod_vehiculo: idVehiculo
-                };
-
                 const response = await apiFetch('/assign', {
                     method: 'POST',
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({ cod_flete: idFlete, cod_vehiculo: idVehiculo })
                 });
 
-                await Swal.fire({ 
-                    icon: 'success', 
-                    title: '¡Asignación Exitosa!', 
-                    text: response.message || `${placa} asignado correctamente.`, 
-                    confirmButtonColor: '#E30613' 
-                });
-
+                await Swal.fire({ icon: 'success', title: '¡Asignado!', text: response.message, confirmButtonColor: '#E30613' });
                 window.location.href = 'fletes.html';
             } catch (e) {
-                console.error('Error en asignación:', e);
-                Swal.fire({ 
-                    icon: 'error', 
-                    title: 'Error', 
-                    text: 'No se pudo completar la asignación: ' + e.message,
-                    confirmButtonColor: '#E30613'
-                });
+                Swal.fire({ icon: 'error', title: 'Error', text: e.message, confirmButtonColor: '#E30613' });
             }
         }
 
-        // ── Inicialización Real via API ───────────────────────────────────────────────
         async function init() {
             if (!fleteId) {
-                document.getElementById('opt-rec-list').innerHTML =
-                    '<div class="opt-detail-placeholder"><i class="fas fa-exclamation-triangle"></i><p>No se especificó un flete</p></div>';
+                document.getElementById('opt-rec-list').innerHTML = '<p style="text-align:center;padding:20px;">No se especificó un flete</p>';
                 return;
             }
 
             try {
-                // Obtener recomendaciones e info del flete desde el back
                 const data = await apiFetch(`/assign/${fleteId}`);
-                console.log('>>> [DEBUG] Datos recibidos de la API (/assign):', data);
-                
-                // El backend devuelve un objeto que contiene 'flete' y 'recommendations'
+                console.log('DATA_FLETE_CON_CODIGO', data);
                 const flete = data.flete;
                 const recs = data.recommendations || [];
 
-                if (!flete) {
-                    throw new Error("Datos del flete no encontrados");
-                }
+                if (!flete) throw new Error("Datos del flete no encontrados");
 
-                // Cabecera de info del flete
                 document.getElementById('opt-flete-info').innerHTML = `
                     <div class="info-item"><label>Cliente</label><span>${flete.cliente}</span></div>
-                    <div class="info-item"><label>Producto</label><span>${flete.producto}</span></div>
-                    <div class="info-item"><label>Origen</label><span>${flete.punto_carga}</span></div>
+                    <div class="info-item"><label>Punto Carga</label><span>${flete.punto_carga}</span></div>
                     <div class="info-item"><label>Destino</label><span>${flete.destino || '—'}</span></div>
-                    <div class="info-item"><label>Carga</label><span>${flete.peso} Ton | ${(flete.peso * 1000).toLocaleString()} KG</span></div>`;
+                    <div class="info-item"><label>Peso</label><span>${flete.peso} Ton</span></div>`;
 
                 recsActuales = recs;
 
                 if (recs.length === 0) {
-                    document.getElementById('opt-rec-list').innerHTML =
-                        '<div class="opt-detail-placeholder"><i class="fas fa-search"></i><p>No se encontraron vehículos óptimos disponibles</p></div>';
+                    document.getElementById('opt-rec-list').innerHTML = '<p style="text-align:center;padding:20px;">No hay vehículos disponibles</p>';
                     return;
                 }
-
                 renderRecomendaciones(flete, recs);
-
             } catch (e) {
-                console.error('Error al cargar recomendaciones:', e);
-                document.getElementById('opt-rec-list').innerHTML =
-                    `<div class="opt-detail-placeholder"><i class="fas fa-exclamation-circle"></i><p>Error: ${e.message}</p></div>`;
+                console.error(e);
+                document.getElementById('opt-rec-list').innerHTML = `<div style="text-align:center;padding:20px;color:red;"><i class="fas fa-plug-circle-xmark fa-2x"></i><br>Error: ${e.message}</div>`;
             }
         }
 

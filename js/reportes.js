@@ -2,29 +2,116 @@
  * reportes.js — Reportes financieros (Coltanques)
  */
 
+let allReporte = []; // Cache local
 let filteredReporte = [];
+let apiFetchError = false;
 
 async function obtenerReporte() {
+    let fechaInicio = document.getElementById('reporte-fecha-inicio').value;
+    let fechaFin = document.getElementById('reporte-fecha-fin').value;
+
+    // Si falta alguna fecha, no consultamos el backend (según lógica del back)
+    if (!fechaInicio || !fechaFin) {
+        limpiarReporte("Seleccione una fecha de inicio y una de fin para generar el reporte operativo.");
+        return;
+    }
+
+    // Mostrar contenedor de resultados y ocultar bienvenida
+    document.getElementById('reporte-resultados').style.display = 'block';
+    document.getElementById('reporte-welcome').style.display = 'none';
+
+    const endpoint = `/reporte?inicio=${fechaInicio}&fin=${fechaFin}`;
+    
+    ui_mostrarCarga('reporte-body', 'Consultando historial de fletes...', 9);
+
     try {
-        const data = await apiFetch('/reporte');
+        apiFetchError = false;
+        const data = await apiFetch(endpoint);
+        console.log('DATA_REPORTE_API', data);
         // Si data es un array, lo tomamos directo; si es objeto buscamos .reporte
-        filteredReporte = Array.isArray(data) ? data : (data.reporte || []);
+        allReporte = Array.isArray(data) ? data : (data.reporte || []);
+        filteredReporte = allReporte;
         
         renderTablaReporte();
+        renderGraficasReporte();
     } catch (e) {
         console.error('obtenerReporte:', e);
+        apiFetchError = true;
+        renderTablaReporte();
+    }
+}
+
+function limpiarReporte(mensaje) {
+    document.getElementById('reporte-resultados').style.display = 'none';
+    document.getElementById('reporte-welcome').style.display = 'block';
+
+    const tbody = document.getElementById('reporte-body');
+    const tfoot = document.getElementById('reporte-totales');
+    if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:3rem; color:var(--text-muted); font-style:italic;"><i class="fas fa-calendar-alt" style="display:block; font-size:2rem; margin-bottom:10px; opacity:0.3;"></i> ${mensaje}</td></tr>`;
+    if (tfoot) tfoot.innerHTML = '';
+    
+    // Destruir gráficas si existen
+    ['reporteFinanceChart', 'reporteCostsChart'].forEach(id => {
+        const ctx = document.getElementById(id);
+        if (ctx) {
+            const chart = Chart.getChart(ctx);
+            if (chart) chart.destroy();
+        }
+    });
+}
+
+function renderGraficasReporte() {
+    // 1. Gráfica de Rendimiento (Barras Comparativas)
+    const ctxFinance = document.getElementById('reporteFinanceChart');
+    if (ctxFinance) {
+        const existingChart = Chart.getChart(ctxFinance);
+        if (existingChart) existingChart.destroy();
+
+        const totalVenta = filteredReporte.reduce((a, r) => a + (Number(r.venta) || 0), 0);
+        const totalCosto = filteredReporte.reduce((a, r) => a + (Number(r.costo_total) || 0), 0);
+
+        new Chart(ctxFinance, {
+            type: 'bar',
+            data: {
+                labels: ['Consolidado Operativo'],
+                datasets: [
+                    {
+                        label: 'Ventas Totales',
+                        data: [totalVenta],
+                        backgroundColor: '#e30613'
+                    },
+                    {
+                        label: 'Costos Totales',
+                        data: [totalCosto],
+                        backgroundColor: '#333'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } },
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        ticks: { callback: (v) => '$' + (v / 1000000).toFixed(1) + 'M' }
+                    }
+                }
+            }
+        });
     }
 }
 
 function filtrarReporte() {
     const query = document.getElementById('reporte-search').value.toLowerCase();
-    filteredReporte = DATA_MOCK.reporte.filter(r => 
+    filteredReporte = allReporte.filter(r => 
         r.placa.toLowerCase().includes(query) || 
         r.conductor.toLowerCase().includes(query) ||
         r.cod_flete.toLowerCase().includes(query) ||
         r.cliente.toLowerCase().includes(query)
     );
     renderTablaReporte();
+    renderGraficasReporte();
 }
 
 function renderTablaReporte() {
@@ -32,14 +119,20 @@ function renderTablaReporte() {
     const tfoot = document.getElementById('reporte-totales');
     if (!tbody) return;
 
+    if (apiFetchError) {
+        ui_mostrarError('reporte-body', obtenerReporte, "No se pudo establecer conexión con el servidor para consolidar los datos financieros.", 9);
+        if (tfoot) tfoot.innerHTML = '';
+        return;
+    }
+
     if (filteredReporte.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem">No se encontraron registros.</td></tr>';
         if (tfoot) tfoot.innerHTML = '';
         return;
     }
 
-    const fmt = n => `$${Number(n).toLocaleString('es-CO')}`;
-    const fmtPct = n => `${Number(n).toLocaleString('es-CO')}%`;
+    const fmt = n => `$${Math.round(Number(n)).toLocaleString('es-CO')}`;
+    const fmtPct = n => `${Math.round(Number(n)).toLocaleString('es-CO')}%`;
 
     tbody.innerHTML = filteredReporte.map(r => {
         const margenClass = r.margen >= 0 ? 'reporte-margen-pos' : 'reporte-margen-neg';
@@ -50,7 +143,7 @@ function renderTablaReporte() {
             <td>${r.conductor}</td>
             <td style="font-size:0.75rem;color:var(--text-muted)">${r.fecha_asignacion}</td>
             <td><strong>${fmt(r.costo_total)}</strong></td>
-            <td style="color:var(--primary);font-weight:800">${fmt(r.venta)}</td>
+            <td style="font-weight:800">${fmt(r.venta)}</td>
             <td><span class="${margenClass}">${fmtPct(r.margen)}</span></td>
             <td>
                 <button class="btn-action primary" onclick="verDetalleReporte('${r.cod_flete}')" title="Ver Detalles">
@@ -65,14 +158,12 @@ function renderTablaReporte() {
         const sum = key => filteredReporte.reduce((a, r) => a + Number(r[key] || 0), 0);
         const totalCosto  = sum('costo_total');
         const totalVenta  = sum('venta');
-        // Si el margen ahora es porcentual por fila, el total debería ser el promedio o recalculado
-        // Por ahora, seguimos la instrucción de cambiar el signo.
         const totalMargen = filteredReporte.length > 0 ? (sum('margen') / filteredReporte.length) : 0; 
         const mc = totalMargen >= 0 ? 'reporte-margen-pos' : 'reporte-margen-neg';
         tfoot.innerHTML = `<tr style="font-weight:800; border-top: 2px solid #eee; background: #fafafa;">
             <td colspan="5">TOTALES FILTRADOS</td>
             <td>${fmt(totalCosto)}</td>
-            <td style="color:var(--primary)">${fmt(totalVenta)}</td>
+            <td>${fmt(totalVenta)}</td>
             <td><span class="${mc}">${fmtPct(totalMargen)}</span></td>
             <td></td>
         </tr>`;
@@ -80,34 +171,26 @@ function renderTablaReporte() {
 }
 
 function verDetalleReporte(codFlete) {
-    const r = filteredReporte.find(x => x.cod_flete === codFlete) || DATA_MOCK.reporte.find(x => x.cod_flete === codFlete);
+    const r = allReporte.find(x => x.cod_flete === codFlete);
     if (!r) return;
 
     document.getElementById('panel-reporte-titulo').innerText = `Operación: ${r.cod_flete}`;
     
-    const fmt = n => `$${Number(n).toLocaleString('es-CO')}`;
-    const fmtPct = n => `${Number(n).toLocaleString('es-CO')}%`;
+    const fmt = n => `$${Math.round(Number(n)).toLocaleString('es-CO')}`;
+    const fmtPct = n => `${Math.round(Number(n)).toLocaleString('es-CO')}%`;
 
     const htmlInfo = `
         <div class="vehiculo-detail-grid">
             <div class="detail-item"><label>Flete</label><span>${r.cod_flete}</span></div>
             <div class="detail-item"><label>Cliente</label><span>${r.cliente}</span></div>
-            <div class="detail-item"><label>Producto</label><span>${r.producto}</span></div>
             <hr style="border:0; border-top:1px solid #ddd; margin: 10px 0;">
             <div class="detail-item"><label>Placa Vehículo</label><span>${r.placa}</span></div>
             <div class="detail-item"><label>Conductor</label><span>${r.conductor}</span></div>
             <div class="detail-item"><label>Fecha Asignación</label><span>${r.fecha_asignacion}</span></div>
             <hr style="border:0; border-top:1px solid #ddd; margin: 10px 0;">
-            <div class="detail-item"><label>Distancia Vacío</label><span>${r.distancia_vacio_km} km</span></div>
-            <div class="detail-item"><label>Distancia Viaje</label><span>${r.distancia_viaje_km} km</span></div>
-            <hr style="border:0; border-top:1px solid #ddd; margin: 10px 0;">
-            <div class="detail-item"><label>Combustible</label><span>${fmt(r.costo_combustible)}</span></div>
-            <div class="detail-item"><label>Peajes</label><span>${fmt(r.costo_peajes)}</span></div>
-            <div class="detail-item"><label>Costos Fijos</label><span>${fmt(r.costos_fijos)}</span></div>
             <div class="detail-item"><label>Costo Total</label><strong>${fmt(r.costo_total)}</strong></div>
-            <hr style="border:0; border-top:1px solid #ddd; margin: 10px 0;">
-            <div class="detail-item"><label>Venta Total</label><strong style="color:var(--primary)">${fmt(r.venta)}</strong></div>
-            <div class="detail-item"><label>Margen Operativo</label><strong style="color:${r.margen >= 0 ? '#10b981' : 'var(--primary)'}">${fmtPct(r.margen)}</strong></div>
+            <div class="detail-item"><label>Venta Total</label><strong>${fmt(r.venta)}</strong></div>
+            <div class="detail-item"><label>Margen Operativo</label><strong style="color:${r.margen >= 0 ? '#10b981' : '#ff4d4d'}">${fmtPct(r.margen)}</strong></div>
         </div>
     `;
 

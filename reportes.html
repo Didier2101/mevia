@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reportes | Coltanques</title>
+    <title>Reportes | MEVIA</title>
     <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/nav.css">
     <link rel="stylesheet" href="css/tables.css">
@@ -17,7 +17,7 @@
         <nav class="top-nav">
             <div class="logo-container">
                 <img src="assets/coltanques50.webp" alt="Logo" class="nav-logo">
-                <span class="logo-text">COLTANQUES</span>
+                <span class="logo-text">MEVIA</span>
             </div>
             <ul class="nav-links">
                 <li><a href="index.html">DASHBOARD</a></li>
@@ -29,7 +29,7 @@
             <div class="nav-actions">
                 <span class="dot online"></span>
                 <span class="status-label">ONLINE</span>
-                
+
                 <div class="opt-user-menu">
                     <div class="opt-user-avatar">
                         <i class="fas fa-user"></i>
@@ -62,31 +62,79 @@
                     <div class="table-header">
                         <h2>REPORTE OPERATIVO</h2>
                         <div class="header-tools">
+                            <div class="search-box date-range-box"
+                                style="display:flex; align-items:center; gap:10px; background: rgba(0,0,0,0.03); padding: 5px 15px; border-radius: 8px; border: 1px solid #eee;">
+                                <div style="display:flex; align-items:center; gap:5px;">
+                                    <label
+                                        style="font-size:0.65rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Desde</label>
+                                    <input type="date" id="reporte-fecha-inicio" onchange="obtenerReporte()"
+                                        style="border:none; background:transparent; font-family:inherit; font-size:0.85rem; color:var(--black); outline:none;">
+                                </div>
+                                <div style="width:1px; height:20px; background:#ddd;"></div>
+                                <div style="display:flex; align-items:center; gap:5px;">
+                                    <label
+                                        style="font-size:0.65rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Hasta</label>
+                                    <input type="date" id="reporte-fecha-fin" onchange="obtenerReporte()"
+                                        style="border:none; background:transparent; font-family:inherit; font-size:0.85rem; color:var(--black); outline:none;">
+                                </div>
+                            </div>
                             <div class="search-box">
                                 <i class="fas fa-search"></i>
-                                <input type="text" id="reporte-search" placeholder="Buscar por placa o conductor..." onkeyup="filtrarReporte()">
+                                <input type="text" id="reporte-search" placeholder="Buscar por placa o conductor..."
+                                    onkeyup="filtrarReporte()">
                             </div>
-                            <button class="btn-header-action" onclick="obtenerReporte()">ACTUALIZAR</button>
+                            <button class="btn-header-action" onclick="obtenerReporte()"
+                                style="background:var(--primary); color:white; border:none; padding:10px 20px; font-weight:800; border-radius:8px; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-search-dollar"></i> CONSULTAR REPORTE
+                            </button>
                         </div>
                     </div>
-                    <div style="overflow-x:auto;">
-                        <table id="reporte-table">
-                            <thead>
-                                <tr>
-                                    <th>FLETE</th>
-                                    <th>CLIENTE</th>
-                                    <th>PLACA</th>
-                                    <th>CONDUCTOR</th>
-                                    <th>FECHA</th>
-                                    <th>COSTO TOTAL</th>
-                                    <th>VENTA</th>
-                                    <th>MARGEN</th>
-                                    <th>ACCIONES</th>
-                                </tr>
-                            </thead>
-                            <tbody id="reporte-body"></tbody>
-                            <tfoot id="reporte-totales"></tfoot>
-                        </table>
+
+                    <!-- Contenedor de Resultados (Oculto inicialmente) -->
+                    <div id="reporte-resultados" style="display: none;">
+                        <!-- Sección de Gráficas -->
+                        <div style="margin-bottom: 30px;">
+                            <div class="data-table-container" style="padding: 20px;">
+                                <h3
+                                    style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; color: var(--text-muted);">
+                                    RENDIMIENTO FINANCIERO (VENTAS VS COSTOS)
+                                </h3>
+                                <div style="height: 300px;">
+                                    <canvas id="reporteFinanceChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="overflow-x:auto;">
+                            <table id="reporte-table">
+                                <thead>
+                                    <tr>
+                                        <th>FLETE</th>
+                                        <th>CLIENTE</th>
+                                        <th>PLACA</th>
+                                        <th>CONDUCTOR</th>
+                                        <th>FECHA</th>
+                                        <th>COSTO TOTAL</th>
+                                        <th>VENTA</th>
+                                        <th>MARGEN</th>
+                                        <th>ACCIONES</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reporte-body"></tbody>
+                                <tfoot id="reporte-totales"></tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Mensaje de bienvenida/instrucciones inicial -->
+                    <div id="reporte-welcome" style="text-align:center; padding:5rem 2rem; color:var(--text-muted);">
+                        <i class="fas fa-chart-pie"
+                            style="font-size:4rem; opacity:0.1; display:block; margin-bottom:20px;"></i>
+                        <h2 style="font-weight:800; color:var(--black); margin-bottom:10px;">CONSULTA DE REPORTES</h2>
+                        <p style="max-width:500px; margin:0 auto; line-height:1.6;">
+                            Seleccione un rango de fechas en la parte superior y haga clic en <strong>CONSULTAR
+                                REPORTE</strong> para ver el análisis de rentabilidad.
+                        </p>
                     </div>
                 </section>
             </div>
@@ -103,6 +151,7 @@
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="js/api_config.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/reportes.js"></script>

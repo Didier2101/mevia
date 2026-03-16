@@ -102,6 +102,25 @@ tr:hover td {
     border-color: var(--primary);
 }
 
+.filter-select {
+    padding: 10px 15px;
+    border-radius: var(--radius);
+    border: 1px solid #ddd;
+    background: #fff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--dark-carbon);
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s;
+    height: 41px; /* Para alinear con el search box */
+}
+
+.filter-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(227, 6, 19, 0.1);
+}
+
 /* BOTONES PEQUEÑOS DE TABLA (EJECUTAR / LIBERAR) */
 .btn-assign-sm, .btn-unassign-sm {
     padding: 8px 16px;

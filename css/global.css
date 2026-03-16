@@ -1,176 +1,258 @@
 :root {
-    --primary: #E30613;
-    --black: #2d2d2d; 
-    --dark-carbon: #404040; 
-    --top-nav-bg: #2d2d2d;
-    --bg-gray: #F4F4F4;
-    --white: #FFFFFF;
-    --text-muted: #666666;
-    --radius: 4px;
-    --font-main: 'Inter', sans-serif;
-    --letter-spacing: 1px;
+  --primary: #e30613;
+  --black: #2d2d2d;
+  --dark-carbon: #404040;
+  --top-nav-bg: #2d2d2d;
+  --bg-gray: #f4f4f4;
+  --white: #ffffff;
+  --text-muted: #666666;
+  --radius: 4px;
+  --font-main: "Inter", sans-serif;
+  --letter-spacing: 1px;
 }
 
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: var(--font-main);
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: var(--font-main);
 }
 
 body {
-    background-color: var(--white);
-    color: var(--black);
-    overflow-x: hidden;
+  background-color: var(--white);
+  color: var(--black);
+  overflow-x: hidden;
 }
 
 /* LAYOUT ESTRUCTURAL */
 .app-container {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 /* CONTENIDO PRINCIPAL */
 .main-content {
-    background-color: var(--bg-gray);
-    padding: 0 0 60px 0;
-    flex: 1;
+  background-color: var(--bg-gray);
+  padding: 0 0 60px 0;
+  flex: 1;
 }
 
 .page-header {
-    background-color: var(--bg-gray);
-    padding: 25px 30px 10px 30px;
+  background-color: var(--bg-gray);
+  padding: 25px 30px 10px 30px;
 }
 
 .page-header h1 {
-    font-weight: 800;
-    font-size: 2.2rem;
-    text-transform: uppercase;
-    letter-spacing: 2px;
+  font-weight: 800;
+  font-size: 2.2rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
 .section-container {
-    padding: 0px 30px;
-    max-width: 1800px;
-    margin: 0 auto;
+  padding: 0px 30px;
+  max-width: 1800px;
+  margin: 0 auto;
 }
 
 /* UTILS */
-.dot { height: 10px; width: 10px; border-radius: 50%; background: #ccc; display: inline-block; margin-right: 10px; }
-.dot.online { background: #10b981; }
+.dot {
+  height: 10px;
+  width: 10px;
+  border-radius: 50%;
+  background: #ccc;
+  display: inline-block;
+  margin-right: 10px;
+}
+.dot.online {
+  background: #10b981;
+}
+.dot.offline {
+  background: #dc2626;
+}
 
 .status-label {
-    font-size: 0.8rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--white);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--white);
 }
 
 /* --- PAGINACION --- */
 .pagination {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 20px;
-    padding: 10px 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 10px 0;
 }
 .pagination button {
-    background: white;
-    border: 1px solid #ddd;
-    color: var(--black);
-    padding: 8px 12px;
-    border-radius: var(--radius);
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.2s;
+  background: white;
+  border: 1px solid #ddd;
+  color: var(--black);
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
 }
 .pagination button:hover:not(:disabled) {
-    background: var(--bg-gray);
-    border-color: #bbb;
+  background: var(--bg-gray);
+  border-color: #bbb;
 }
 .pagination button.active {
-    background: var(--primary);
-    color: var(--white);
-    border-color: var(--primary);
+  background: var(--primary);
+  color: var(--white);
+  border-color: var(--primary);
 }
 .pagination button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* --- SIDE PANEL (MODAL 30%) --- */
 .side-panel {
-    position: fixed;
-    top: 75px; /* header nav height */
-    right: -35%;
-    width: 30%;
-    height: calc(100vh - 75px);
-    background: var(--white);
-    box-shadow: -5px 0 25px rgba(0,0,0,0.1);
-    z-index: 999;
-    transition: right 0.3s ease-in-out;
-    display: flex;
-    flex-direction: column;
+  position: fixed;
+  top: 75px; /* header nav height */
+  right: -35%;
+  width: 30%;
+  height: calc(100vh - 75px);
+  background: var(--white);
+  box-shadow: -5px 0 25px rgba(0, 0, 0, 0.1);
+  z-index: 999;
+  transition: right 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
 }
 .side-panel.open {
-    right: 0;
+  right: 0;
 }
 .side-panel-header {
-    background: var(--bg-gray);
-    padding: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #ddd;
+  background: var(--bg-gray);
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
 }
 .side-panel-header h3 {
-    margin: 0;
-    font-size: 1.2rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    color: var(--primary);
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--primary);
 }
 .btn-close-panel {
-    background: transparent;
-    border: none;
-    font-size: 1.2rem;
-    cursor: pointer;
-    color: #666;
-    transition: color 0.2s;
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #666;
+  transition: color 0.2s;
 }
 .btn-close-panel:hover {
-    color: var(--primary);
+  color: var(--primary);
 }
 .side-panel-body {
-    padding: 25px;
-    overflow-y: auto;
-    flex: 1;
+  padding: 25px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 /* Vehiculo Modal Detalles */
 .vehiculo-detail-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 15px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
 }
 .detail-item {
-    background: #fafafa;
-    padding: 12px 15px;
-    border-radius: var(--radius);
-    border: 1px solid #eee;
-    display: flex;
-    justify-content: space-between;
+  background: #fafafa;
+  padding: 12px 15px;
+  border-radius: var(--radius);
+  border: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
 }
 .detail-item label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: var(--text-muted);
-    text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
 }
 .detail-item span {
-    font-weight: 800;
-    font-size: 0.9rem;
-    color: var(--black);
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--black);
+}
+/* --- PREMIUM MAP MARKERS --- */
+.map-marker-premium {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1rem;
+    border: 3px solid white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 10;
+}
+.map-marker-premium.truck { width: 40px; height: 40px; font-size: 1.2rem; }
+
+.map-marker-premium::after {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 12px solid white;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+}
+
+.map-marker-premium.truck { background: linear-gradient(135deg, #2d2d2d, #1a1a1a); }
+.map-marker-premium.origin { background: linear-gradient(135deg, #10b981, #059669); }
+.map-marker-premium.destination { background: linear-gradient(135deg, #e30613, #b91c1c); }
+.map-marker-premium.parking { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+
+.map-marker-peaje {
+    background: #f59e0b;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    border: 2px solid white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* --- GLASSMORPHISM MAP OVERLAYS --- */
+.opt-sidebar, .opt-rec-card, .cost-breakdown-card {
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.opt-right {
+    padding: 15px;
+    background: var(--bg-gray);
+}
+
+#map {
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.leaflet-container {
+    background: #f8fafc !important;
 }
