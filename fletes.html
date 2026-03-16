@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fletes | Coltanques</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/nav.css">
+    <link rel="stylesheet" href="css/tables.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+</head>
+
+<body>
+    <div class="app-container">
+        <nav class="top-nav">
+            <div class="logo-container">
+                <img src="assets/coltanques50.webp" alt="Logo" class="nav-logo">
+                <span class="logo-text">COLTANQUES</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">DASHBOARD</a></li>
+                <li class="active"><a href="fletes.html">FLETES</a></li>
+                <li><a href="vehiculos.html">VEHÍCULOS</a></li>
+                <li><a href="conductores.html">CONDUCTORES</a></li>
+                <li><a href="reportes.html">REPORTES</a></li>
+            </ul>
+            <div class="nav-actions">
+                <span class="dot online"></span>
+                <span class="status-label">ONLINE</span>
+                
+                <div class="opt-user-menu">
+                    <div class="opt-user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="opt-user-info">
+                        <strong>Jhonathan Puertas</strong>
+                        <small>Ver perfil <i class="fas fa-chevron-down"></i></small>
+                    </div>
+
+                    <div class="opt-user-dropdown">
+                        <div class="dropdown-header">
+                            <p>Último ingreso: <br><strong>11 Mar 2026, 13:58</strong></p>
+                        </div>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="mostrarConfiguracion()">
+                            <i class="fas fa-cog"></i> Configuración
+                        </a>
+                        <a href="javascript:void(0)" class="dropdown-item logout" onclick="confirmarSalida()">
+                            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="main-content">
+
+
+            <div id="main-view-container" class="section-container">
+                <section class="data-table-container">
+                    <div class="table-header">
+                        <h2>BOLSA DE CARGA</h2>
+                        <div class="header-tools">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="fletes-search" placeholder="Buscar flete o cliente..." onkeyup="filtrarFletes()">
+                            </div>
+                            <button class="btn-header-action" onclick="obtenerFletes()"><i class="fas fa-sync-alt"></i> ACTUALIZAR</button>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID FLETE</th>
+                                <th>CLIENTE</th>
+                                <th>PRODUCTO</th>
+                                <th>PESO</th>
+                                <th>PUNTO CARGA</th>
+                                <th>ESTADO</th>
+                                <th>ACCIONES</th>
+                            </tr>
+                        </thead>
+                    <tbody id="fletes-body"></tbody>
+                    </table>
+
+                    <!-- Paginación -->
+                    <div class="pagination" id="fletes-pagination"></div>
+                </section>
+            </div>
+
+        </main>
+
+        <!-- Panel Lateral (Modal 30%) -->
+        <div id="flete-modal" class="side-panel">
+            <div class="side-panel-header">
+                <h3 id="panel-flete-titulo">Detalle de Flete</h3>
+                <button class="btn-close-panel" onclick="cerrarPanelFlete()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="side-panel-body" id="panel-flete-body">
+                <!-- Contenido Dinámico -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/api_config.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/fletes.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => obtenerFletes());
+    </script>
+</body>
+
+</html>

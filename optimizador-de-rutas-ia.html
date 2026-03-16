@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimizador de Rutas IA | Coltanques</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+    <style>
+        /* ── Overrides específicos para esta página ── */
+        body {
+            overflow: hidden;
+        }
+
+        .optimizador-page {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: var(--bg-gray);
+            font-family: var(--font-main);
+        }
+
+        /* CABECERA INMERSIVA */
+        .opt-topbar {
+            height: 72px;
+            background: var(--dark-carbon);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            border-bottom: 4px solid var(--primary);
+            flex-shrink: 0;
+        }
+
+        .opt-topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .opt-topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .btn-back-opt {
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: var(--white);
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.25s;
+        }
+
+        .btn-back-opt:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .opt-title small {
+            display: block;
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.5;
+        }
+
+        .opt-title h1 {
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin: 0;
+        }
+
+        /* Píldoras de info del flete */
+        .opt-flete-info {
+            display: flex;
+            gap: 30px;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 8px 18px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-right: auto;
+            margin-left: 30px;
+        }
+
+        .opt-flete-info .info-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .opt-flete-info .info-item label {
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--primary);
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .opt-flete-info .info-item span {
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        /* CUERPO PRINCIPAL */
+        .opt-body {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR IZQUIERDO — Lista de recomendaciones */
+        .opt-sidebar {
+            width: 380px;
+            flex-shrink: 0;
+            background: var(--white);
+            border-right: 1px solid #e8e8e8;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .opt-sidebar-header {
+            padding: 18px 22px;
+            border-bottom: 1px solid #eee;
+            background: var(--bg-gray);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .opt-sidebar-header h2 {
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+        }
+
+        .opt-rec-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* Tarjeta de recomendación — más compacta */
+        .opt-rec-card {
+            background: var(--white);
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            padding: 16px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .opt-rec-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 16px rgba(227, 6, 19, 0.08);
+        }
+
+        .opt-rec-card.selected {
+            border-color: var(--primary);
+            border-width: 2px;
+            background: #fff8f8;
+        }
+
+        .opt-rec-card.best {
+            background: var(--bg-gray);
+        }
+
+        .opt-rec-badge {
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            width: 26px;
+            height: 26px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.7rem;
+        }
+
+        .opt-rec-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .opt-rec-header h4 {
+            font-size: 0.95rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .opt-rec-header h4 small {
+            font-weight: 400;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .opt-rec-header strong {
+            font-size: 1.05rem;
+            color: var(--primary);
+            font-weight: 800;
+        }
+
+        .opt-rec-meta {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 14px;
+            margin-bottom: 10px;
+        }
+
+        .opt-rec-meta i {
+            color: var(--primary);
+            margin-right: 4px;
+        }
+
+        .opt-rec-stats {
+            display: flex;
+            gap: 10px;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+
+        .opt-rec-stats span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .opt-rec-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .opt-btn-detail {
+            padding: 9px;
+            border: 1.5px solid #ddd;
+            background: transparent;
+            color: var(--black);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .opt-btn-detail:hover {
+            border-color: var(--dark-carbon);
+            background: var(--dark-carbon);
+            color: white;
+        }
+
+        .opt-btn-detail.active {
+            background: var(--dark-carbon);
+            color: white;
+            border-color: var(--dark-carbon);
+        }
+
+        .opt-btn-ruta {
+            padding: 9px;
+            border: none;
+            background: var(--dark-carbon);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .opt-btn-ruta:hover,
+        .opt-btn-ruta.active {
+            background: var(--primary);
+        }
+
+        .opt-btn-assign {
+            grid-column: 1 / -1;
+            padding: 11px;
+            border: none;
+            background: var(--primary);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .opt-btn-assign:hover {
+            filter: brightness(1.15);
+            transform: translateY(-1px);
+        }
+
+        /* PANEL DERECHO */
+        .opt-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Panel de Detalle */
+        .opt-detail-panel {
+            flex: 1;
+            overflow-y: auto;
+            padding: 35px 45px;
+            background: var(--bg-gray);
+        }
+
+        .opt-detail-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 16px;
+            color: #ccc;
+        }
+
+        .opt-detail-placeholder i {
+            font-size: 3.5rem;
+        }
+
+        .opt-detail-placeholder p {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Contenido del Detalle Técnico */
+        .detail-section {
+            margin-bottom: 40px;
+        }
+
+        .detail-section h3 {
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .detail-section h3 i {
+            color: var(--primary);
+        }
+
+        .cost-breakdown-card {
+            background: var(--white);
+            padding: 20px 25px;
+            border-radius: var(--radius);
+            border: 1px solid #eee;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        }
+
+        .cost-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #ddd;
+            font-size: 1rem;
+        }
+
+        .cost-row.total {
+            border-bottom: none;
+            padding-top: 20px;
+            font-weight: 800;
+            font-size: 1.3rem;
+            color: var(--primary);
+        }
+
+        .toll-list-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            background: var(--white);
+        }
+
+        /* Panel del Mapa */
+        .opt-map-panel {
+            flex: 1;
+            display: none;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Loading spinner */
+        .opt-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 20px;
+            color: var(--text-muted);
+        }
+
+        .opt-loading p {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="optimizador-page">
+
+        <!-- CABECERA INMERSIVA -->
+        <header class="opt-topbar">
+            <div class="opt-topbar-left">
+                <button class="btn-back-opt" onclick="history.back()" title="Volver">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div class="opt-title">
+                    <small>Sistema Coltanques</small>
+                    <h1>Optimizador de Rutas IA</h1>
+                </div>
+            </div>
+
+            <div id="opt-flete-info" class="opt-flete-info">
+                <!-- Dinámico -->
+            </div>
+        </header>
+
+        <!-- CUERPO -->
+        <div class="opt-body">
+
+            <!-- SIDEBAR: Lista de Recomendaciones -->
+            <aside class="opt-sidebar">
+                <div class="opt-sidebar-header">
+                    <h2><i class="fas fa-brain" style="color:var(--primary);margin-right:8px;"></i>Recomendaciones IA
+                    </h2>
+                    <span id="opt-rec-count" style="font-size:0.7rem;color:var(--text-muted);font-weight:700;"></span>
+                </div>
+                <div id="opt-rec-list" class="opt-rec-list">
+                    <div class="opt-loading">
+                        <i class="fas fa-spinner fa-spin fa-2x" style="color:var(--primary);"></i>
+                        <p>Procesando Optimización...</p>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- PANEL DERECHO: Detalle o Mapa -->
+            <div class="opt-right">
+
+                <div id="opt-detail-panel" class="opt-detail-panel">
+                    <div class="opt-detail-placeholder">
+                        <i class="fas fa-route"></i>
+                        <p>Selecciona una recomendación para ver el análisis detallado</p>
+                    </div>
+                    <div id="opt-detail-content"></div>
+                </div>
+
+                <div id="opt-map-panel" class="opt-map-panel">
+                    <div id="map"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Modales de confirmación (SweetAlert2) -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/api_config.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/mapa.js"></script>
+    <script>
+
+        const Nota = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+
+        // ── Leer parámetro flete de la URL ──────────────────────────────────────────
+        const params = new URLSearchParams(window.location.search);
+        const fleteId = params.get('flete');
+
+        let recsActuales = [];
+        let detailVisible = true;
+
+        // ── Alternar Detail / Mapa ──────────────────────────────────────────────────
+        function mostrarDetalle() {
+            document.getElementById('opt-detail-panel').style.display = 'block';
+            document.getElementById('opt-map-panel').style.display = 'none';
+            detailVisible = true;
+        }
+
+        function mostrarMapa() {
+            document.getElementById('opt-detail-panel').style.display = 'none';
+            document.getElementById('opt-map-panel').style.display = 'block';
+            detailVisible = false;
+            setTimeout(() => mapa && mapa.invalidateSize(), 120);
+        }
+
+        // ── Renderizar el detalle de una recomendación ──────────────────────────────
+        function renderDetalle(r) {
+            const placeholder = document.querySelector('.opt-detail-placeholder');
+            const content = document.getElementById('opt-detail-content');
+            if (placeholder) placeholder.style.display = 'none';
+
+            content.innerHTML = `
+        <div class="detail-section">
+            <h3><i class="fas fa-truck"></i> Vehículo &amp; Conductor</h3>
+            <div class="cost-breakdown-card">
+                <div class="cost-row"><span>Placa</span><span><strong>${r.placa}</strong></span></div>
+                <div class="cost-row"><span>Marca</span><span>${r.marca}</span></div>
+                <div class="cost-row"><span>Conductor</span><span>${r.conductor}</span></div>
+                <div class="cost-row"><span>Licencia</span><span>${r.licencia}</span></div>
+                <div class="cost-row"><span>Puntuación</span><span><strong>${r.puntos_conductor} / 18 ⭐</strong></span></div>
+            </div>
+        </div>
+        <div class="detail-section">
+            <h3><i class="fas fa-route"></i> Logística Estimada</h3>
+            <div class="cost-breakdown-card">
+                <div class="cost-row"><span>Distancia Vacío</span><span>${r.distancia_vacio} KM</span></div>
+                <div class="cost-row"><span>Distancia en Tránsito</span><span>${r.distancia_viaje} KM</span></div>
+                <div class="cost-row"><span>Distancia Retorno</span><span>${r.distancia_retorno || 0} KM</span></div>
+                <div class="cost-row"><span>Parqueo Destino</span><span>${r.parqueo_retorno || 'N/A'}</span></div>
+                <div class="cost-row"><span>Tiempo Total Operativo</span><span>${r.tiempo_total_min} MIN</span></div>
+            </div>
+        </div>
+        <div class="detail-section">
+            <h3><i class="fas fa-dollar-sign"></i> Estructura de Costos</h3>
+            <div class="cost-breakdown-card">
+                <div class="cost-row"><span>Viáticos Estimados</span><span>$${(r.viaticos_estimados || 0).toLocaleString()}</span></div>
+                <div class="cost-row"><span>Cargue/Descargue</span><span>$${((r.valor_cargue || 0) + (r.valor_descargue || 0)).toLocaleString()}</span></div>
+                <div class="cost-row"><span>Escolta/Otros</span><span>$${(r.valor_escolta || 0).toLocaleString()}</span></div>
+                <div class="cost-row"><span>Combustible</span><span>$${r.costo_combustible.toLocaleString()}</span></div>
+                <div class="cost-row"><span>Peajes</span><span>$${(r.costo_peajes + (r.costo_peajes_vacio || 0)).toLocaleString()}</span></div>
+                <div class="cost-row total"><span>Inversión Total</span><span>$${r.costo_total.toLocaleString()}</span></div>
+            </div>
+        </div>
+        ${r.peajes && r.peajes.length ? `
+        <div class="detail-section">
+            <h3><i class="fas fa-id-card"></i> Peajes en Ruta</h3>
+            ${r.peajes.map(p => `
+                <div class="toll-list-item">
+                    <span>${p.nombre}</span>
+                    <span>$${p.costo.toLocaleString()}</span>
+                </div>`).join('')}
+        </div>` : ''}`;
+
+            mostrarDetalle();
+        }
+
+        // ── Renderizar lista de recomendaciones ─────────────────────────────────────
+        function renderRecomendaciones(flete, recs) {
+            const list = document.getElementById('opt-rec-list');
+            const counter = document.getElementById('opt-rec-count');
+            counter.textContent = `${recs.length} opción${recs.length !== 1 ? 'es' : ''}`;
+
+            const coordO = flete.origen.split(',').map(Number);
+            const coordD = flete.destino.split(',').map(Number);
+
+            list.innerHTML = '';
+
+            recs.forEach((r, i) => {
+                const card = document.createElement('div');
+                card.className = 'opt-rec-card' + (i === 0 ? ' best' : '');
+                card.dataset.index = i;
+
+                card.innerHTML = `
+            <div class="opt-rec-badge">#${i + 1}</div>
+            <div class="opt-rec-header">
+                <h4>${r.placa} <small>(${r.marca})</small></h4>
+                <strong>$${r.costo_total.toLocaleString()}</strong>
+            </div>
+            <div class="opt-rec-meta">
+                <span><i class="fas fa-user"></i>${r.conductor}</span>
+                <span><i class="fas fa-id-card"></i>${r.licencia}</span>
+            </div>
+            <div class="opt-rec-stats">
+                <span><i class="fas fa-star" style="color:#f59e0b"></i> ${r.puntos_conductor}/18 pts</span>
+                <span><i class="fas fa-truck-moving" style="color:#666"></i> ${r.distancia_vacio} km vacío</span>
+                <span><i class="fas fa-route" style="color:#dc2626"></i> ${r.distancia_viaje} km</span>
+            </div>
+            <div class="opt-rec-actions">
+                <button class="opt-btn-detail"><i class="fas fa-list-ul"></i> Ver Detalle</button>
+                <button class="opt-btn-ruta"><i class="fas fa-map-marked-alt"></i> Ver Ruta</button>
+                <button class="opt-btn-assign">
+                    <i class="fas fa-check-circle"></i> Asignar Unidad
+                </button>
+            </div>`;
+
+                // Selección visual
+                card.querySelector('.opt-btn-detail').onclick = () => {
+                    document.querySelectorAll('.opt-rec-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    renderDetalle(r);
+                };
+
+                card.querySelector('.opt-btn-ruta').onclick = () => {
+                    document.querySelectorAll('.opt-rec-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    mostrarMapa();
+                    mostrarTrayectoCompletoEnMapa(
+                        r.truck_pos, r.route_vacio_points, r.route_points, coordO, coordD, r.peajes, r.route_retorno_points
+                    );
+                };
+
+                card.querySelector('.opt-btn-assign').onclick = () => asignar(flete.cod_flete, r.cod_vehiculo, r.placa, r.conductor);
+
+                list.appendChild(card);
+            });
+
+            // Auto-seleccionar y mostrar detalle de la #1
+            list.firstChild.classList.add('selected');
+            renderDetalle(recs[0]);
+        }
+
+        // ── Asignación Real via API ──────────────────────────────────────────────────
+        async function asignar(idFlete, idVehiculo, placa, conductor) {
+            const confirm = await Swal.fire({
+                title: '¿Confirmar Asignación?',
+                html: `Asignando <strong>${placa}</strong> con conductor <strong>${conductor}</strong>`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#E30613',
+                cancelButtonColor: '#404040',
+                confirmButtonText: 'Sí, Asignar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            try {
+                // Notificar al usuario que se está procesando
+                Swal.fire({
+                    title: 'Procesando...',
+                    text: 'Confirmando asignación en el servidor',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                const payload = {
+                    cod_flete: idFlete,
+                    cod_vehiculo: idVehiculo
+                };
+
+                const response = await apiFetch('/assign', {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+
+                await Swal.fire({ 
+                    icon: 'success', 
+                    title: '¡Asignación Exitosa!', 
+                    text: response.message || `${placa} asignado correctamente.`, 
+                    confirmButtonColor: '#E30613' 
+                });
+
+                window.location.href = 'fletes.html';
+            } catch (e) {
+                console.error('Error en asignación:', e);
+                Swal.fire({ 
+                    icon: 'error', 
+                    title: 'Error', 
+                    text: 'No se pudo completar la asignación: ' + e.message,
+                    confirmButtonColor: '#E30613'
+                });
+            }
+        }
+
+        // ── Inicialización Real via API ───────────────────────────────────────────────
+        async function init() {
+            if (!fleteId) {
+                document.getElementById('opt-rec-list').innerHTML =
+                    '<div class="opt-detail-placeholder"><i class="fas fa-exclamation-triangle"></i><p>No se especificó un flete</p></div>';
+                return;
+            }
+
+            try {
+                // Obtener recomendaciones e info del flete desde el back
+                const data = await apiFetch(`/assign/${fleteId}`);
+                console.log('>>> [DEBUG] Datos recibidos de la API (/assign):', data);
+                
+                // El backend devuelve un objeto que contiene 'flete' y 'recommendations'
+                const flete = data.flete;
+                const recs = data.recommendations || [];
+
+                if (!flete) {
+                    throw new Error("Datos del flete no encontrados");
+                }
+
+                // Cabecera de info del flete
+                document.getElementById('opt-flete-info').innerHTML = `
+                    <div class="info-item"><label>Cliente</label><span>${flete.cliente}</span></div>
+                    <div class="info-item"><label>Producto</label><span>${flete.producto}</span></div>
+                    <div class="info-item"><label>Origen</label><span>${flete.punto_carga}</span></div>
+                    <div class="info-item"><label>Destino</label><span>${flete.destino || '—'}</span></div>
+                    <div class="info-item"><label>Carga</label><span>${flete.peso} Ton | ${(flete.peso * 1000).toLocaleString()} KG</span></div>`;
+
+                recsActuales = recs;
+
+                if (recs.length === 0) {
+                    document.getElementById('opt-rec-list').innerHTML =
+                        '<div class="opt-detail-placeholder"><i class="fas fa-search"></i><p>No se encontraron vehículos óptimos disponibles</p></div>';
+                    return;
+                }
+
+                renderRecomendaciones(flete, recs);
+
+            } catch (e) {
+                console.error('Error al cargar recomendaciones:', e);
+                document.getElementById('opt-rec-list').innerHTML =
+                    `<div class="opt-detail-placeholder"><i class="fas fa-exclamation-circle"></i><p>Error: ${e.message}</p></div>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+
+</html>

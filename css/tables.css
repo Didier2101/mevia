@@ -1,0 +1,159 @@
+/* TABLAS FLAT (AHORA EN TARJETAS PREMIUN) */
+.data-table-container {
+    background: var(--white);
+    margin-top: 20px;
+    padding: 25px;
+    border-radius: var(--radius);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f0f0f0;
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    border-left: 6px solid var(--primary);
+    padding-left: 20px;
+}
+
+.table-header h2 {
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-size: 1.4rem;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    background-color: var(--dark-carbon);
+    color: var(--white);
+}
+
+th {
+    padding: 20px;
+    text-align: left;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+}
+
+td {
+    padding: 20px;
+    border-bottom: 1px solid var(--bg-gray);
+    font-size: 0.95rem;
+}
+
+tr:hover td {
+    background-color: var(--bg-gray);
+}
+
+/* BADGES */
+.badge {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    border-radius: var(--radius);
+    letter-spacing: 1px;
+    display: inline-block;
+}
+
+.badge-pending { background: #e0e0e0; color: #444; }
+.badge-assigned { background: var(--primary); color: var(--white); }
+.badge-success { background: #10b981; color: var(--white); }
+
+/* HEADER TOOLS & SEARCH */
+.header-tools {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-box i {
+    position: absolute;
+    left: 12px;
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.search-box input {
+    padding: 10px 15px 10px 35px;
+    border-radius: var(--radius);
+    border: 1px solid #ddd;
+    font-size: 0.85rem;
+    width: 280px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.search-box input:focus {
+    border-color: var(--primary);
+}
+
+/* BOTONES PEQUEÑOS DE TABLA (EJECUTAR / LIBERAR) */
+.btn-assign-sm, .btn-unassign-sm {
+    padding: 8px 16px;
+    border: none;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border-radius: var(--radius);
+    transition: all 0.3s;
+}
+
+.btn-assign-sm {
+    background: var(--primary);
+    color: var(--white);
+}
+
+.btn-unassign-sm {
+    background: var(--dark-carbon);
+    color: var(--white);
+}
+
+.btn-assign-sm:hover, .btn-unassign-sm:hover {
+    filter: brightness(1.2);
+    transform: translateY(-1px);
+}
+
+/* NUEVO BOTÓN DETALLES OBTENER */
+.btn-action.primary {
+    background-color: var(--primary);
+    color: var(--white);
+    border: none;
+    padding: 8px 14px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-action.primary:hover {
+    background-color: #c40511;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(227, 6, 19, 0.2);
+}
+
+/* REPORTES */
+.reporte-margen-pos { color: #10b981; font-weight: 800; }
+.reporte-margen-neg { color: var(--primary); font-weight: 800; }
