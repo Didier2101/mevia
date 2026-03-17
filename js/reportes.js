@@ -6,6 +6,44 @@ let allReporte = []; // Cache local
 let filteredReporte = [];
 let apiFetchError = false;
 
+// Funciones de formateo globales para asegurar consistencia y evitar cálculos en el front
+const fmtReporte = n => {
+    if (n === null || n === undefined) return '$0';
+    // Se eliminan los decimales de los precios como se solicitó
+    return '$' + Math.round(Number(n)).toLocaleString('es-CO');
+};
+
+const fmtPctReporte = n => {
+    if (n === null || n === undefined) return '0,00%';
+    return Number(n).toLocaleString('es-CO', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
+    }) + '%';
+};
+
+const fmtFechaReporte = f => {
+    if (!f) return '';
+    try {
+        const d = new Date(f.replace(' ', 'T')); // Maneja formato 'YYYY-MM-DD HH:mm'
+        if (isNaN(d.getTime())) return f;
+        
+        const meses = [
+            'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+            'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+        ];
+        
+        const dia = String(d.getDate()).padStart(2, '0');
+        const mes = meses[d.getMonth()];
+        const anio = d.getFullYear();
+        const hora = String(d.getHours()).padStart(2, '0');
+        const mins = String(d.getMinutes()).padStart(2, '0');
+        
+        return `${dia} - ${mes} - ${anio} : ${hora}:${mins}`;
+    } catch (e) {
+        return f;
+    }
+};
+
 async function obtenerReporte() {
     let fechaInicio = document.getElementById('reporte-fecha-inicio').value;
     let fechaFin = document.getElementById('reporte-fecha-fin').value;
@@ -28,7 +66,8 @@ async function obtenerReporte() {
         apiFetchError = false;
         const data = await apiFetch(endpoint);
         console.log('DATA_REPORTE_API', data);
-        // Si data es un array, lo tomamos directo; si es objeto buscamos .reporte
+        
+        // El back puede enviar un array directo o un objeto con {reporte: [...]}
         allReporte = Array.isArray(data) ? data : (data.reporte || []);
         filteredReporte = allReporte;
         
@@ -131,8 +170,9 @@ function renderTablaReporte() {
         return;
     }
 
-    const fmt = n => `$${Math.round(Number(n)).toLocaleString('es-CO')}`;
-    const fmtPct = n => `${Math.round(Number(n)).toLocaleString('es-CO')}%`;
+    const fmt = fmtReporte;
+    const fmtPct = fmtPctReporte;
+    const fmtF = fmtFechaReporte;
 
     tbody.innerHTML = filteredReporte.map(r => {
         const margenClass = r.margen >= 0 ? 'reporte-margen-pos' : 'reporte-margen-neg';
@@ -142,11 +182,10 @@ function renderTablaReporte() {
             <td>${r.cliente}</td>
             <td><span class="badge" style="background:#2d2d2d;color:#fff;padding:4px 8px;">${r.placa}</span></td>
             <td>${r.conductor}</td>
-            <td style="font-size:0.75rem;color:var(--text-muted)">${r.fecha_asignacion}</td>
+            <td style="font-size:0.75rem;color:var(--text-muted)">${fmtF(r.fecha_asignacion)}</td>
             <td><strong>${fmt(r.costo_total)}</strong></td>
             <td style="font-weight:800">${fmt(r.venta)}</td>
             <td><span class="${margenClass}">${fmtPct(r.margen)}</span></td>
-            <td><span class="${mtgClass}">${fmtPct(r.margen_total_general)}</span></td>
             <td>
                 <button class="btn-action primary" onclick="verDetalleReporte('${r.cod_flete}')" title="Ver Detalles">
                     <i class="fas fa-eye"></i> Detalles
@@ -157,19 +196,23 @@ function renderTablaReporte() {
 
     // Fila de totales
     if (tfoot) {
+        // Sumamos solo lo que es necesario para el filtrado, pero el margen GRAL lo tomamos directo del back (primer registro)
         const sum = key => filteredReporte.reduce((a, r) => a + Number(r[key] || 0), 0);
         const totalCosto  = sum('costo_total');
         const totalVenta  = sum('venta');
-        const totalMargen = filteredReporte.length > 0 ? (sum('margen') / filteredReporte.length) : 0; 
-        const totalMTG    = filteredReporte.length > 0 ? (sum('margen_total_general') / filteredReporte.length) : 0;
-        const mc = totalMargen >= 0 ? 'reporte-margen-pos' : 'reporte-margen-neg';
-        const mtgc = totalMTG >= 0 ? 'reporte-margen-pos' : 'reporte-margen-neg';
+        
+        // No hacemos cálculos de margen en el front, usamos el que viene del back
+        // Si hay datos filtrados, mostramos el margen que viene en el primer registro
+        const firstRec = filteredReporte[0];
+        const dispMargen = firstRec ? firstRec.margen : 0; 
+
+        const mc = dispMargen >= 0 ? 'reporte-margen-pos' : 'reporte-margen-neg';
+
         tfoot.innerHTML = `<tr style="font-weight:800; border-top: 2px solid #eee; background: #fafafa;">
-            <td colspan="5">TOTALES FILTRADOS</td>
+            <td colspan="5">CONSOLIDADO</td>
             <td>${fmt(totalCosto)}</td>
             <td>${fmt(totalVenta)}</td>
-            <td><span class="${mc}">${fmtPct(totalMargen)}</span></td>
-            <td><span class="${mtgc}">${fmtPct(totalMTG)}</span></td>
+            <td><span class="${mc}">${fmtPct(dispMargen)}</span></td>
             <td></td>
         </tr>`;
     }
@@ -181,8 +224,9 @@ function verDetalleReporte(codFlete) {
 
     document.getElementById('panel-reporte-titulo').innerText = `Operación: ${r.cod_flete}`;
     
-    const fmt = n => `$${Math.round(Number(n)).toLocaleString('es-CO')}`;
-    const fmtPct = n => `${Math.round(Number(n)).toLocaleString('es-CO')}%`;
+    const fmt = fmtReporte;
+    const fmtPct = fmtPctReporte;
+    const fmtF = fmtFechaReporte;
 
     const htmlInfo = `
         <div class="vehiculo-detail-grid">
@@ -191,12 +235,11 @@ function verDetalleReporte(codFlete) {
             <hr style="border:0; border-top:1px solid #ddd; margin: 10px 0;">
             <div class="detail-item"><label>Placa Vehículo</label><span>${r.placa}</span></div>
             <div class="detail-item"><label>Conductor</label><span>${r.conductor}</span></div>
-            <div class="detail-item"><label>Fecha Asignación</label><span>${r.fecha_asignacion}</span></div>
+            <div class="detail-item"><label>Fecha Asignación</label><span>${fmtF(r.fecha_asignacion)}</span></div>
             <hr style="border:0; border-top:1px solid #ddd; margin: 10px 0;">
             <div class="detail-item"><label>Costo Total</label><strong>${fmt(r.costo_total)}</strong></div>
             <div class="detail-item"><label>Venta Total</label><strong>${fmt(r.venta)}</strong></div>
             <div class="detail-item"><label>Margen Operativo</label><strong style="color:${r.margen >= 0 ? '#10b981' : '#ff4d4d'}">${fmtPct(r.margen)}</strong></div>
-            <div class="detail-item"><label>Margen Total Gral</label><strong style="color:${r.margen_total_general >= 0 ? '#10b981' : '#ff4d4d'}">${fmtPct(r.margen_total_general)}</strong></div>
         </div>
     `;
 

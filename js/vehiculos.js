@@ -14,6 +14,7 @@ async function obtenerVehiculos() {
   try {
     apiFetchError = false;
     const data = await apiFetch("/vehiculos");
+    console.log('DATA_VEHICULOS', data);
     // Si data es un array, lo tomamos directo; si es objeto buscamos .vehiculos
     allVehicles = Array.isArray(data) ? data : data.vehiculos || [];
     filteredVehicles = allVehicles;
@@ -139,18 +140,15 @@ function verDetalleVehiculo(codVehiculo) {
             <div class="detail-item"><label>Placa</label><span>${v.placa}</span></div>
             <div class="detail-item"><label>ID Único</label><span>${v.cod_vehiculo}</span></div>
             <div class="detail-item"><label>Marca</label><span>${v.marca}</span></div>
-            <div class="detail-item"><label>Modelo</label><span>${v.modelo}</span></div>
-            <div class="detail-item"><label>Año</label><span>${v.ano}</span></div>
-            <div class="detail-item"><label>Capacidad</label><span>${v.capacidad_ton} Ton</span></div>
+            <div class="detail-item"><label>Tipo de Plancha</label><span>${v.tipo_plancha || 'No especificado'}</span></div>
+            <div class="detail-item"><label>Color</label><span>${v.color}</span></div>
             <hr style="border:0; border-top:1px solid #ddd; margin: 10px 0;">
             <div class="detail-item"><label>Kilometraje Actual</label><span>${v.km_actual.toLocaleString()} km</span></div>
             <div class="detail-item"><label>Próx. Cambio Aceite</label><span style="color:${v.km_actual >= v.km_proximo_aceite ? "var(--primary)" : "inherit"}">${v.km_proximo_aceite.toLocaleString()} km</span></div>
             <div class="detail-item"><label>Estado Llantas</label><span>${v.estado_llantas}</span></div>
             <hr style="border:0; border-top:1px solid #ddd; margin: 10px 0;">
-            <div class="detail-item"><label>SOAT Vence</label><span>${v.soat_vencimiento}</span></div>
-            <div class="detail-item"><label>Revisión Tecnomecánica</label><span>${v.rtm_vencimiento}</span></div>
+            <div class="detail-item"><label>Dirección Parqueo</label><span>${v.punto_parqueo?.direccion || 'No registrada'}</span></div>
             <hr style="border:0; border-top:1px solid #ddd; margin: 10px 0;">
-            <div class="detail-item"><label>Conductor Asignado</label><span>${v.conductor_asignado}</span></div>
             <div class="detail-item"><label>Estado Operativo</label><span>${v.estado}</span></div>
             <div class="detail-item"><label>Flete Actual</label><span>${v.flete_activo}</span></div>
         </div>

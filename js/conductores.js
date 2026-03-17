@@ -9,11 +9,12 @@ let filteredDrivers = [];
 let apiFetchError = false;
 
 async function obtenerConductores() {
-    ui_mostrarCarga('conductores-body', 'Cargando conductores...', 7);
+    ui_mostrarCarga('conductores-body', 'Cargando conductores...', 6);
 
     try {
         apiFetchError = false;
         const data = await apiFetch('/conductores');
+        console.log('DATA_CONDUCTORES', data);
         // Si data es un array, lo tomamos directo; si es objeto buscamos .conductores
         allDrivers = Array.isArray(data) ? data : (data.conductores || []);
         filteredDrivers = allDrivers;
@@ -43,7 +44,7 @@ function renderTablaConductores() {
     tbody.innerHTML = '';
 
     if (apiFetchError) {
-        ui_mostrarError('conductores-body', obtenerConductores, "No se pudo establecer conexión con el servidor para obtener la lista de conductores.", 7);
+        ui_mostrarError('conductores-body', obtenerConductores, "No se pudo establecer conexión con el servidor para obtener la lista de conductores.", 6);
         return;
     }
 
@@ -56,7 +57,7 @@ function renderTablaConductores() {
         renderTablaConductores();
         return;
     } else if (paginatedItems.length === 0 && filteredDrivers.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center">No se encontraron conductores.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center">No se encontraron conductores.</td></tr>`;
         return;
     }
 
@@ -127,23 +128,16 @@ function verDetalleConductor(codEmpleado) {
     const htmlInfo = `
         <div class="vehiculo-detail-grid">
             <div class="detail-item"><label>Código Empleado</label><span>${c.cod_empleado}</span></div>
+            <div class="detail-item"><label>Cédula</label><span>${c.cedula}</span></div>
             <div class="detail-item"><label>Nombre Completo</label><span>${c.nombre}</span></div>
             <hr style="border:0; border-top:1px solid #ddd; margin: 10px 0;">
             <div class="detail-item"><label>Teléfono</label><span>${c.telefono}</span></div>
-            <div class="detail-item"><label>RH</label><span>${c.rh}</span></div>
-            <div class="detail-item"><label>Fecha Ingreso</label><span>${c.fecha_ingreso}</span></div>
+            <div class="detail-item"><label>Puntos / Calificación</label><span><strong>${c.puntos} ⭐</strong></span></div>
             <hr style="border:0; border-top:1px solid #ddd; margin: 10px 0;">
             <div class="detail-item"><label>Estado Operativo</label><span>${c.estado_operativo}</span></div>
             <div class="detail-item"><label>Vacaciones</label><span>${c.vacaciones}</span></div>
             <div class="detail-item"><label>Incapacidad</label><span>${c.incapacidad}</span></div>
             <div class="detail-item"><label>Vehículo Habitual</label><span>${c.vehiculo_habitual}</span></div>
-            <hr style="border:0; border-top:1px solid #ddd; margin: 10px 0;">
-            <div class="detail-item" style="grid-column: span 2;">
-                <label>Capacitaciones</label>
-                <div style="margin-top:5px;">
-                    ${c.capacitaciones ? c.capacitaciones.map(cap => `<span class="badge badge-assigned" style="margin-right:5px; margin-bottom:5px;">${cap}</span>`).join('') : 'Ninguna'}
-                </div>
-            </div>
         </div>
     `;
 

@@ -28,7 +28,7 @@ async function obtenerDatosDashboard() {
     };
 
     const fmt = (n) => `$${(n / 1000000).toFixed(1)}M`;
-    const fmtMoney = (n) => `$${Number(n).toLocaleString("es-CO")}`;
+    const fmtMoney = (n) => `$${Math.round(Number(n)).toLocaleString("es-CO")}`;
 
     // Obtener arrays limpios (manejando si la API devuelve {fletes: []} o [])
     const listFletes = Array.isArray(fletes) ? fletes : fletes.fletes || [];
@@ -50,13 +50,15 @@ async function obtenerDatosDashboard() {
     actualizaTexto("total-vehiculos-count", listVehiculos.length);
     actualizaTexto("total-conductores", listConductores.length);
 
-    const margenTotal = listReporte.reduce(
-      (a, r) => a + (Number(r.margen) || 0),
-      0,
-    );
+    // No calculamos margen en el front, usamos el que viene del back (margen_total_general del primer registro)
+    const margenConsolidado = listReporte.length > 0 ? (listReporte[0].margen_total_general || 0) : 0;
+    
+    // Si viene como porcentaje (por debajo de 100 o similar) lo mostramos como tal, 
+    // pero el dashboard parece esperar un valor monetario o consolidado. 
+    // Basado en el reporte, mostraremos el porcentaje si es pequeño o el valor si es grande.
     actualizaTexto(
       "total-margen-valor",
-      margenTotal > 1000000 ? fmt(margenTotal) : fmtMoney(margenTotal),
+      listReporte.length > 0 ? `${margenConsolidado.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%` : '$0'
     );
 
     const vehiculosEnRuta = listVehiculos.filter(
