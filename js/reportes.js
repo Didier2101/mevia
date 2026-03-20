@@ -4,6 +4,7 @@
 
 let allReporte = []; // Cache local
 let filteredReporte = [];
+let margenTotalGeneral = 0; // Se almacena el margen global del backend
 let apiFetchError = false;
 
 // Funciones de formateo globales para asegurar consistencia y evitar cálculos en el front
@@ -67,8 +68,9 @@ async function obtenerReporte() {
         const data = await apiFetch(endpoint);
         console.log('DATA_REPORTE_API', data);
         
-        // El back puede enviar un array directo o un objeto con {reporte: [...]}
-        allReporte = Array.isArray(data) ? data : (data.reporte || []);
+        // El back ahora envía un objeto con {fletes: [...], margen_total_general: X}
+        allReporte = data.fletes || [];
+        margenTotalGeneral = data.margen_total_general !== undefined ? data.margen_total_general : 0;
         filteredReporte = allReporte;
         
         renderTablaReporte();
@@ -201,10 +203,9 @@ function renderTablaReporte() {
         const totalCosto  = sum('costo_total');
         const totalVenta  = sum('venta');
         
-        // No hacemos cálculos de margen en el front, usamos el que viene del back
-        // Si hay datos filtrados, mostramos el margen que viene en el primer registro
-        const firstRec = filteredReporte[0];
-        const dispMargen = firstRec ? firstRec.margen : 0; 
+        // No hacemos cálculos de margen en el front, usamos el que viene del back (margenTotalGeneral)
+        // aunque si está filtrado, mostramos el del primer registro como fallback
+        const dispMargen = (filteredReporte.length === allReporte.length) ? margenTotalGeneral : (filteredReporte[0]?.margen || 0);
 
         const mc = dispMargen >= 0 ? 'reporte-margen-pos' : 'reporte-margen-neg';
 

@@ -45,6 +45,7 @@ Desde **CMD o PowerShell en la PC local** ejecutar:
 
 ```
 ssh -L 5500:localhost:5500 didier@192.168.2.57
+ssh -L 3000:localhost:3000 didier@192.168.2.57
 ```
 
 Explicación del comando:
